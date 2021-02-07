@@ -1,0 +1,25 @@
+# ref:https://github.com/AliyunContainerService/redis-cluster
+version: '3'
+services:
+  master:
+    image: redis
+    ports:
+      - "7001:6379"
+  slave:
+    image: redis
+    command: redis-server --slaveof redis-master 6379
+    links:
+        - master:redis-master
+    ports:
+      - "7002:6379"
+  sentinel:
+    build: sentinel
+    environment:
+        - SENTINEL_DOWN_AFTER=5000
+        - SENTINEL_FAILOVER=5000   
+        - SENTINEL_QUORUM=1 
+    links:
+        - master:redis-master
+        - slave
+    ports:
+      - "7003:26379"
