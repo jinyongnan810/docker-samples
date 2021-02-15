@@ -1,10 +1,8 @@
 #!/bin/bash
 
-#MONGODB1=`ping -c 1 mongo1 | head -1  | cut -d "(" -f 2 | cut -d ")" -f 1`
-#MONGODB2=`ping -c 1 mongo2 | head -1  | cut -d "(" -f 2 | cut -d ")" -f 1`
-
 MONGODB1=mongo1
 MONGODB2=mongo2
+ARBITER=arbiter
 
 echo "**********************************************" ${MONGODB1}
 echo "Waiting for startup.."
@@ -24,18 +22,31 @@ var cfg = {
         {
             "_id": 0,
             "host": "${MONGODB1}:27017",
-            "priority": 2
+            "arbiterOnly" : false,
+            "priority": 1
         },
         {
             "_id": 1,
             "host": "${MONGODB2}:27017",
+            "arbiterOnly" : false,
+            "priority": 0.5
+        },
+        {
+            "_id": 2,
+            "host": "${ARBITER}:27017",
+            "arbiterOnly" : true,
             "priority": 0
         }
-    ],settings: {chainingAllowed: true}
+    ],
+    settings: {
+        "chainingAllowed": true,
+        "heartbeatTimeoutSecs": 1,
+        "electionTimeoutMillis":10000,
+    }
 };
 rs.initiate(cfg, { force: true });
 rs.reconfig(cfg, { force: true });
-rs.slaveOk();
+rs.secondaryOk();
 db.getMongo().setReadPref('nearest');
-db.getMongo().setSlaveOk(); 
+db.getMongo().setSecondaryOk(); 
 EOF

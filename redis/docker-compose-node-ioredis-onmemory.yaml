@@ -1,0 +1,26 @@
+# ref:https://github.com/AliyunContainerService/redis-cluster
+version: "3"
+services:
+  node-ioredis:
+    container_name: node-ioredis
+    build: node-ioredis/.
+    volumes: ["./node-ioredis:/app", "/app/node_modules"]
+    depends_on:
+      - sentinel
+  master:
+    build: redis-on-memory/.
+    command: redis-server /usr/local/etc/redis/redis.conf
+  slave:
+    build: redis-on-memory/.
+    command: redis-server /usr/local/etc/redis/redis.conf --slaveof redis-master 6379
+    links:
+      - master:redis-master
+  sentinel:
+    build: sentinel
+    environment:
+      - SENTINEL_DOWN_AFTER=5000
+      - SENTINEL_FAILOVER=5000
+      - SENTINEL_QUORUM=1
+    links:
+      - master:redis-master
+      - slave

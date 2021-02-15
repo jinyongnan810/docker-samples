@@ -1,9 +1,10 @@
 ### Access
 
 ```javascript
-const client = redis.createClient({
-  port: 7001,
-  host: "redis_master_1",
+# ioredis
+const redis = new Redis({
+  sentinels: [{ host: "redis_sentinel_1", port: 26379 }],
+  name: "mymaster",
 });
 ```
 
